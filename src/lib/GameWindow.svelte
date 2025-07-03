@@ -7,6 +7,7 @@
 	let mapWidth: number | undefined = $state(undefined);
 	let mapHeight: number | undefined = $state(undefined);
 	let pixels: string[] = $state([]);
+	let mapChanges: string[] = $state([]);
 
 	onMount(async () => {
 		const socket = new WebSocket('ws://localhost:3000/ws/observer');
@@ -26,7 +27,8 @@
 			if (data.type === 'gameUpdate') {
 				mapWidth = data.map.width;
 				mapHeight = data.map.height;
-				pixels = data.map.pixels;
+				pixels = [];
+				mapChanges = data.mapChanges;
 			}
 		});
 	});
@@ -36,7 +38,7 @@
 	{#if !connected}
 		<div class="connection-status">Brak połączenia z serwerem. Spróbuj odświeżyć stronę.</div>
 	{/if}
-	<PixiContent width={mapWidth} height={mapHeight} {pixels} />
+	<PixiContent width={mapWidth} height={mapHeight} {pixels} {mapChanges} />
 </div>
 
 <style>

@@ -1,9 +1,15 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import { Application, Container, Graphics } from 'pixi.js';
+	import type { Pixel } from './model/Game';
 
-	type PixiContentProps = { width?: number; height?: number; pixels: string[] };
-	let { width = 1000, height = 1000, pixels }: PixiContentProps = $props();
+	type PixiContentProps = {
+		width?: number;
+		height?: number;
+		pixels: string[];
+		mapChanges: Pixel[];
+	};
+	let { width = 1000, height = 1000, mapChanges }: PixiContentProps = $props();
 
 	let pixiContent: HTMLDivElement;
 	let app: Application;
@@ -30,7 +36,7 @@
 		container.addChild(pixelGraphics);
 	});
 
-	let lastPixels = pixels;
+	// let lastPixels = pixels;
 
 	$effect(() => {
 		if (!container || !pixelGraphics) return;
@@ -38,15 +44,19 @@
 			container.x = app.screen.width / 2 - (width * pixelSize) / 2;
 			container.y = app.screen.height / 2 - (height * pixelSize) / 2;
 
-			for (let i = 0; i < pixels.length; i++) {
-				const color = pixels[i];
-				if (color !== lastPixels[i]) {
-					pixelGraphics
-						.fill(color)
-						.rect((i % width) * pixelSize, Math.floor(i / width) * pixelSize, pixelSize, pixelSize);
-				}
-			}
-			lastPixels = pixels;
+			mapChanges.forEach(({ x, y, color }) => {
+				pixelGraphics?.fill(color).rect(x * pixelSize, y * pixelSize, pixelSize, pixelSize);
+			});
+
+			// for (let i = 0; i < pixels.length; i++) {
+			// 	const color = pixels[i];
+			// 	if (color !== lastPixels[i]) {
+			// 		pixelGraphics
+			// 			.fill(color)
+			// 			.rect((i % width) * pixelSize, Math.floor(i / width) * pixelSize, pixelSize, pixelSize);
+			// 	}
+			// }
+			// lastPixels = pixels;
 		} catch (e) {
 			console.warn(e);
 			return;
