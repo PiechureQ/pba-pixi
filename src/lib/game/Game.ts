@@ -1,60 +1,102 @@
-import { GAME_SERVER_WS } from "$lib/const";
-import type { GameUpdate, Pixel } from "$lib/model/Game";
+import { GAME_SERVER_URL, GAME_SERVER_WS } from "$lib/const";
+import type { GameSync, GameUpdate, Pixel } from "$lib/model/Game";
+import mitt from "mitt";
 import { Application, Container, Graphics } from "pixi.js";
 
 let lastMap: string[] | undefined = undefined;
 
+type Player = { color: string; id: string; score: number };
+
+type GameState = {
+  players: Player[];
+  map: { width: number; height: number; pixels: string[] };
+  roundNumber: number;
+}
+
+type GameEvents = {
+  connect: boolean,
+  state: 'waiting' | 'playing',
+  sync: GameSync,
+  stop: undefined,
+  start: undefined,
+  update: GameUpdate['mapChanges']
+}
+
 export class Game {
   private socket: WebSocket | null = null;
-  private pixiApp: Application | null = null;
-  private mainContainer: Container | null = null;
-  private pixelGraphics: Graphics | null = null;
-  width: number = 10;
-  height: number = 10;
-  readonly pixelSize: number = 10;
+  event = mitt<GameEvents>();
+  // map
+  width: number = 0;
+  height: number = 0;
+  pixels: string[] = [];
+  // players
+  players: { color: string; id: string; score: number }[] = [];
+  // round
+  roundNumber: number = 0;
+
   connected: boolean = false;
 
-  rateLimit: number = 5; // 60 FPS
-
-  async initApp(pixiContent: HTMLDivElement): Promise<Game> {
-    const app = new Application();
-    await app.init({
-      backgroundColor: 0x0f0f0f,
-      resizeTo: pixiContent
-    });
-
-    pixiContent.appendChild(app.canvas as HTMLCanvasElement);
-
-    // Create and add a container to the stage
-    const container = new Container();
-    app.stage.addChild(container);
-
-    // Use a single Graphics object to draw all pixels
-    const pixelGraphics = new Graphics();
-    container.removeChildren();
-    container.addChild(pixelGraphics);
-
-    this.pixiApp = app;
-    this.mainContainer = container;
-    this.pixelGraphics = pixelGraphics;
-
-    return this;
-  }
-
   connect(): Game {
+    if (this.socket) {
+      this.disconnect();
+    }
     const socket = new WebSocket(`${GAME_SERVER_WS}/ws/observer`);
     this.socket = socket;
 
     socket.addEventListener('open', () => {
       this.connected = true;
+      this.event.emit('connect', true);
       console.log('connected');
     });
     socket.addEventListener('close', () => {
       this.connected = false;
+      this.event.emit('connect', false);
       console.log('connection close');
     });
 
     return this;
+  }
+
+  async sync() {
+    const res = await fetch(`${GAME_SERVER_URL}/game-state`);
+    const data = await res.json() as GameSync;
+
+    this.handleGameSync(data);
+
+    return data;
+  }
+
+  async start() {
+    const res = await fetch(`${GAME_SERVER_URL}/start`);
+    const data = await res.json() as GameSync;
+
+    this.handleGameSync(data);
+    this.event.emit('start');
+
+    return data;
+  }
+
+  async stop() {
+    const res = await fetch(`${GAME_SERVER_URL}/stop`);
+    const data = await res.json() as GameSync;
+
+    this.handleGameSync(data);
+    this.event.emit('stop');
+
+    return data;
+  }
+
+  private handleGameSync(data: GameSync) {
+    this.event.emit('state', data.state);
+    this.event.emit('sync', data);
+    // map
+    this.width = data.map.width;
+    this.height = data.map.height;
+    this.pixels = data.map.pixels;
+    // players
+    this.players = data.players;
+    // round
+    this.roundNumber = data.roundNumber;
   }
 
   listen(): Game {
@@ -82,54 +124,27 @@ export class Game {
 
   onGameUpdate(event: GameUpdate) {
     try {
-      if (event.roundNumber % this.rateLimit === 0) {
-        const { map, mapChanges } = event;
-        const { width, height } = map;
+      const { round, mapChanges } = event;
+      this.roundNumber = round;
 
-        this.setMapSize(width, height);
+      mapChanges.forEach(({ x, y, color }) => {
+        this.pixels[y * this.width + x] = color;
+      });
 
-        this.renderMap(map);
-      }
+      this.event.emit('update', mapChanges);
     } catch (e) {
       console.warn(e);
       return;
     }
   }
 
-  setMapSize(width: number, height: number) {
-    if (!this.pixiApp || !this.mainContainer) {
-      console.warn('Pixi app or main container is not initialized');
-      return;
-    }
-    this.mainContainer.x = this.pixiApp.screen.width / 2 - (width * this.pixelSize) / 2;
-    this.mainContainer.y = this.pixiApp.screen.height / 2 - (height * this.pixelSize) / 2;
-  }
-
-  renderMap(map: GameUpdate['map']) {
-    map.pixels.forEach((pixel, index) => {
-      const x = index % map.width;
-      const y = Math.floor(index / map.width);
-      const color = pixel;
-
-      if (lastMap == undefined || lastMap[index] !== color) {
-        try {
-          this.pixelGraphics?.fill(color.replace('#ffffff', '#0a0a0a')).rect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
-        } catch (e) {
-          console.log('e', e);
-        }
-      }
-    });
-    lastMap = map.pixels;
-  }
-
-  renderChanges(mapChanges: Pixel[]) {
-    mapChanges.forEach(({ x, y, color }) => {
-      this.pixelGraphics?.fill(color).rect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
-    });
-  }
-
-  destroy() {
+  disconnect() {
     this.socket?.close()
+    this.socket = null;
+  }
+
+  toString() {
+    return `round ${this.roundNumber}, players: ${this.players.length}, map: ${this.width}x${this.height}`;
   }
 }
 
