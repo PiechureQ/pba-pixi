@@ -1,8 +1,9 @@
 <script lang="ts">
 	import GameWindow from '$lib/GameWindow.svelte';
+	import { GAME_SERVER_URL } from '$lib/const';
 
 	const startGame = async () => {
-		const response = await fetch('http://localhost:3000/start');
+		const response = await fetch(`${GAME_SERVER_URL}/start`);
 		if (response.ok) {
 			console.log('Gra rozpoczęta!');
 		} else {
