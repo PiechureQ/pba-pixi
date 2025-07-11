@@ -54,7 +54,7 @@ export class PixiRender {
 
         if (this.lastMap == undefined || this.lastMap[index] !== color) {
           try {
-            this.pixelGraphics.fill(color.replace('#ffffff', '#3a3a3a')).rect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
+            this.pixelGraphics?.fill(color.replace('#ffffff', '#3a3a3a')).rect(x * this.pixelSize, y * this.pixelSize, this.pixelSize, this.pixelSize);
           } catch (e) {
             console.log('e', e);
           }
