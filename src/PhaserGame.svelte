@@ -30,7 +30,7 @@
 		EventBus.on('current-scene-ready', (scene_instance: Scene) => {
 			phaserRef.scene = scene_instance;
 
-			if (scene_instance.scene.key === 'Game') {
+			if (scene_instance.scene.key === 'Arena') {
 				phaserRef.gameScene = scene_instance as Arena;
 			} else {
 				phaserRef.gameScene = null;

@@ -20,12 +20,11 @@
 
 	game.event.on('start', () => {
 		console.log('start');
-		phaserRef.gameScene?.renderMap(game.pixels);
+		// phaserRef.gameScene?.createMap(game.pixels);
 	});
 	game.event.on('sync', (event) => {
-		console.log('sync');
 		if (!phaserRef.gameScene) return;
-		phaserRef.gameScene.setMapSize(event.map.width, event.map.height);
+		// phaserRef.gameScene.setMapSize(event.map.width, event.map.height);
 		phaserRef.gameScene.renderMap(event.map.pixels);
 	});
 	game.event.on('update', (changes) => {
@@ -35,8 +34,8 @@
 
 	onMount(() => {
 		game.sync();
-		window.pba = window.pba || {};
-		window.pba.game = game;
+		// window.pba = window.pba || {};
+		// window.pba.game = game;
 	});
 
 	const currentScene = (scene: Scene) => {};

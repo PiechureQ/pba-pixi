@@ -13,73 +13,110 @@ export class Arena extends Scene {
 
     private keys!: { [key: string]: Phaser.Input.Keyboard.Key };
     private camera!: Phaser.Cameras.Scene2D.Camera;
+    private lastMap = [];
     private pixelsLayer!: Phaser.GameObjects.Layer;
+    private pixelObjects: Map<string, Phaser.GameObjects.Rectangle> = new Map();
 
     constructor() {
-        super('Game');
+        super('Arena');
     }
 
     create() {
         this.camera = this.cameras.main;
-
         this.pixelsLayer = this.add.layer();
 
-        this.createMap();
         this.setupCamera();
         this.setupInput();
 
         EventBus.emit('current-scene-ready', this);
     }
 
-    renderMap(map: string[]) {
-        this.createMap()
-    }
-
     renderChanges(changes: Pixel[]) {
+        changes.forEach(pixel => {
+            const key = `${pixel.x},${pixel.y}`;
+            const existingPixel = this.pixelObjects.get(key);
 
+            if (existingPixel) {
+                // Update existing pixel
+                existingPixel.setFillStyle(Phaser.Display.Color.ValueToColor(pixel.color)?.color);
+            } else {
+                // Create new pixel
+                this.createPixel(pixel);
+            }
+        });
     }
 
-    private createMap() {
-        this.pixelsLayer.removeAll();
-
+    renderMap(pixels: string[]) {
         for (let x = 0; x < this.mapWidth; x++) {
             for (let y = 0; y < this.mapHeight; y++) {
-                const pixelX = x * this.PIXEL_SIZE;
-                const pixelY = y * this.PIXEL_SIZE;
-                const randomColor = Phaser.Display.Color.RandomRGB(50, 200).color;
+                const key = `${x},${y}`;
+                const existingPixel = this.pixelObjects.get(key);
 
-                const pixel = this.add
-                    .rectangle(pixelX, pixelY, this.PIXEL_SIZE, this.PIXEL_SIZE, randomColor)
-                    .setStrokeStyle(1, 0x111111)
-                    .setOrigin(0, 0);
-
-                pixel.setInteractive();
-
-                pixel.on('pointerover', () => {
-                    pixel.setStrokeStyle(2, 0xffffff); // White highlight
-                });
-
-                pixel.on('pointerout', () => {
-                    pixel.setStrokeStyle(1, 0x111111); // Reset to default
-                });
-
-                pixel.on('pointerdown', () => {
-                    console.log(`Clicked pixel at (${x}, ${y})`);
-                    // Change color on click
-                    pixel.setFillStyle(Phaser.Display.Color.RandomRGB(50, 255).color);
-                });
-
-                this.pixelsLayer.add(pixel);
+                const index = x + y * this.mapWidth;
+                const pixel = pixels[index];
+                if (existingPixel) {
+                    // Update existing pixel
+                    existingPixel.setFillStyle(Phaser.Display.Color.ValueToColor(pixel)?.color);
+                } else {
+                    // Create new pixel
+                    this.createPixel({ x, y, color: pixel });
+                }
             }
         }
     }
 
+    createMap(mapWidth: number, mapHeight: number, pixels: string[]) {
+        this.setMapSize(mapWidth, mapHeight);
+
+        this.pixelsLayer.removeAll(true);
+        this.pixelObjects.clear();
+
+        for (let x = 0; x < this.mapWidth; x++) {
+            for (let y = 0; y < this.mapHeight; y++) {
+                this.createPixel({ x, y, color: pixels[x + y * this.mapWidth] });
+            }
+        }
+    }
+
+    private createPixel(pixelData: Pixel) {
+        const { x, y, color } = pixelData;
+        const pixelX = x * this.PIXEL_SIZE;
+        const pixelY = y * this.PIXEL_SIZE;
+        // const pixelColor = Phaser.Display.Color.ValueToColor(color)?.color;
+        const pixelColor = Phaser.Display.Color.ValueToColor('#afafaf')?.color;
+        const key = `${x},${y}`;
+
+        const pixel = this.add
+            .rectangle(pixelX, pixelY, this.PIXEL_SIZE, this.PIXEL_SIZE, pixelColor)
+            .setStrokeStyle(1, 0x111111)
+            .setOrigin(0, 0);
+
+        pixel.setInteractive();
+
+        pixel.on('pointerover', () => {
+            pixel.setStrokeStyle(2, 0xffffff); // White highlight
+        });
+
+        pixel.on('pointerout', () => {
+            pixel.setStrokeStyle(1, 0x111111); // Reset to default
+        });
+
+        pixel.on('pointerdown', () => {
+            console.log(`Clicked pixel at (${x}, ${y})`);
+            // Here you might want to emit an event to the game logic
+            // For example: EventBus.emit('pixel-clicked', { x, y });
+        });
+
+        this.pixelsLayer.add(pixel);
+        this.pixelObjects.set(key, pixel);
+    }
+
+
     setMapSize(width: number, height: number) {
-        console.log('setMapSizze')
+        console.log('setMapSize', { width, height });
         this.mapWidth = width;
         this.mapHeight = height;
         this.setupCamera();
-        this.renderMap([]);
     }
 
     setupCamera() {
@@ -104,7 +141,8 @@ export class Arena extends Scene {
             } else {
                 newZoom = this.camera.zoom - this.ZOOM_INCREMENT * 5;
             }
-            this.camera.zoom = Phaser.Math.Clamp(newZoom, 0.5, 3);
+            // this.camera.zoom = Phaser.Math.Clamp(newZoom, 0.5, 100);
+            this.camera.zoom = newZoom
         });
     }
 
