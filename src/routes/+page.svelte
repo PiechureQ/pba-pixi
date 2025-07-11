@@ -1,38 +1,48 @@
 <script lang="ts">
 	import SlidingPanel from '$lib/SlidingPanel.svelte';
+	import type { Scene } from 'phaser';
 	import ConnectionStatus from '$lib/ConnectionStatus.svelte';
+	import PhaserGame, { type TPhaserRef } from '../PhaserGame.svelte';
 	import { Game } from '$lib/game/Game';
 	import { onMount } from 'svelte';
 	import { PixiRender } from '$lib/game/Render';
 
-	let pixiContent: HTMLDivElement;
+	//  References to the PhaserGame component (game and scene are exposed)
+	let phaserRef: TPhaserRef = { game: null, scene: null, gameScene: null };
 
 	let connected = $state(false);
 	let gameState = $state(false);
 
 	const game = new Game();
-	const render = new PixiRender();
 
 	game.event.on('connect', (con) => (connected = con));
 	game.event.on('state', (state) => (gameState = state == 'playing'));
 
-	game.event.on('start', () => render.renderMap(game.pixels));
-	game.event.on('sync', (event) => {
-		render.setMapSize(event.map.width, event.map.height);
-		render.renderMap(event.map.pixels);
+	game.event.on('start', () => {
+		console.log('start');
+		phaserRef.gameScene?.renderMap(game.pixels);
 	});
-	game.event.on('update', (changes) => render.renderChanges(changes));
+	game.event.on('sync', (event) => {
+		console.log('sync');
+		if (!phaserRef.gameScene) return;
+		phaserRef.gameScene.setMapSize(event.map.width, event.map.height);
+		phaserRef.gameScene.renderMap(event.map.pixels);
+	});
+	game.event.on('update', (changes) => {
+		console.log('update');
+		phaserRef.gameScene?.renderChanges(changes);
+	});
 
 	onMount(() => {
 		game.sync();
 		window.pba = window.pba || {};
 		window.pba.game = game;
-
-		render.initApp(pixiContent);
 	});
+
+	const currentScene = (scene: Scene) => {};
 </script>
 
-<div id="pixi-content" bind:this={pixiContent}></div>
+<PhaserGame bind:phaserRef currentActiveScene={currentScene} />
 
 <ConnectionStatus connected={gameState ? connected : true} />
 <SlidingPanel

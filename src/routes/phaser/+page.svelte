@@ -3,7 +3,7 @@
 	import PhaserGame, { type TPhaserRef } from '../../PhaserGame.svelte';
 
 	//  References to the PhaserGame component (game and scene are exposed)
-	let phaserRef: TPhaserRef = { game: null, scene: null };
+	let phaserRef: TPhaserRef = { game: null, scene: null, gameScene: null };
 
 	const currentScene = (scene: Scene) => {};
 </script>
