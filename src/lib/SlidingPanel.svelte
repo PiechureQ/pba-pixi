@@ -9,6 +9,7 @@
 		onConnect: () => void;
 		onDisconnect: () => void;
 	};
+
 	const { onStart, onStop, onSync, onConnect, onDisconnect, gameOn = false }: Props = $props();
 </script>
 
@@ -28,7 +29,7 @@
 		<button onclick={onStop}>Stop</button>
 		<button onclick={onSync}>Sync</button>
 
-		<p>dołącz do gry</p>
+		<p>Połączenie z obserwatorem</p>
 		<button onclick={onConnect}>Połącz</button>
 		<button onclick={onDisconnect}>Rozłącz</button>
 	</div>

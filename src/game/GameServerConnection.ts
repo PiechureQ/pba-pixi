@@ -1,9 +1,8 @@
-import { GAME_SERVER_URL, GAME_SERVER_WS } from "$lib/const";
-import type { GameSync, GameUpdate, Pixel } from "$lib/model/Game";
+import type { GameSync, GameUpdate, Pixel } from "./model/Game";
 import mitt from "mitt";
-import { Application, Container, Graphics } from "pixi.js";
 
-let lastMap: string[] | undefined = undefined;
+const GAME_SERVER_URL = "http://localhost:3000"
+const GAME_SERVER_WS = "ws://localhost:3000"
 
 type Player = { color: string; id: string; score: number };
 
@@ -22,7 +21,7 @@ type GameEvents = {
   update: GameUpdate['mapChanges']
 }
 
-export class Game {
+export class GameServerConnection {
   private socket: WebSocket | null = null;
   event = mitt<GameEvents>();
   // map
@@ -36,7 +35,7 @@ export class Game {
 
   connected: boolean = false;
 
-  connect(): Game {
+  connect(): GameServerConnection {
     if (this.socket) {
       this.disconnect();
     }
@@ -99,7 +98,7 @@ export class Game {
     this.roundNumber = data.roundNumber;
   }
 
-  listen(): Game {
+  listen(): GameServerConnection {
     if (!this.socket) {
       throw new Error('Socket is not initialized');
     }

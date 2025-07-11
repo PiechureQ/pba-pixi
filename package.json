@@ -1,5 +1,5 @@
 {
-	"name": "pba-pixi-svelte",
+	"name": "pba-phaser-svelte",
 	"private": true,
 	"version": "0.0.1",
 	"type": "module",
@@ -35,7 +35,6 @@
 	},
 	"dependencies": {
 		"phaser": "^3.90.0",
-		"pixi.js": "^8.10.2",
 		"terser": "^5.43.1"
 	}
 }
