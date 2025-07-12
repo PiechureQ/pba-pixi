@@ -10,9 +10,12 @@ import { Preloader } from './scenes/Preloader';
 function createConfig(): Phaser.Types.Core.GameConfig {
   return {
     type: Phaser.WEBGL,
-    width: window.innerWidth,
-    height: window.innerHeight,
     parent: 'game-container',
+    scale: {
+      mode: Phaser.Scale.RESIZE,
+      width: '100%',
+      height: '100%',
+    },
     backgroundColor: '#393B44',
     scene: [
       Boot,

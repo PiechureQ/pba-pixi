@@ -82,10 +82,10 @@
 	const currentScene = (scene: Scene) => {};
 </script>
 
-<div id="game-container">
+<div id="game-window">
 	{#if offline == false}
 		<SideControls />
-		<ConnectionStatus {connected} />
+		<ConnectionStatus connected={connected ? gameState : true} />
 	{/if}
 	<PhaserGame bind:phaserRef currentActiveScene={currentScene} />
 </div>
@@ -104,4 +104,7 @@
 {/if}
 
 <style>
+	#game-window {
+		display: flex;
+	}
 </style>

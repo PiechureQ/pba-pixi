@@ -57,8 +57,13 @@ export class GameServerConnection {
   }
 
   async fetchGameState(): Promise<GameSync['state']> {
-    const sync = await this.sync()
-    return sync.state
+    try {
+      const sync = await this.sync()
+      return sync.state
+    } catch (e) {
+      console.warn(e)
+      return 'waiting'
+    }
   }
 
   async sync() {

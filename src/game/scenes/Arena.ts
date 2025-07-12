@@ -34,7 +34,6 @@ export class Arena extends Scene {
   }
 
   renderChanges(changes: Pixel[]) {
-    console.log('changes', changes)
     changes.forEach(pixel => {
       const key = `${pixel.x},${pixel.y}`;
       const existingPixel = this.pixelObjects.get(key);
@@ -72,7 +71,7 @@ export class Arena extends Scene {
     }
   }
 
-  createMap(mapWidth: number, mapHeight: number) {
+  createMap(mapWidth: number, mapHeight: number, lines: boolean = false) {
     this.setMapSize(mapWidth, mapHeight);
     this.setupCamera();
 
@@ -116,23 +115,25 @@ export class Arena extends Scene {
     this.bg.fillStyle(0xffffff, 1);
     this.bg.fillRect(0, 0, width, height);
 
-    // Narysuj siatkę z czarnych linii
-    this.bg.lineStyle(1, 0x000000, 1); // czarna linia
+    if (lines) {
+      // Narysuj siatkę z czarnych linii
+      this.bg.lineStyle(1, 0x000000, 1); // czarna linia
 
-    // Pionowe linie
-    for (let i = x; i <= x + width; i += cellSize) {
-      this.bg.beginPath();
-      this.bg.moveTo(i, y);
-      this.bg.lineTo(i, y + height);
-      this.bg.strokePath();
-    }
+      // Pionowe linie
+      for (let i = x; i <= x + width; i += cellSize) {
+        this.bg.beginPath();
+        this.bg.moveTo(i, y);
+        this.bg.lineTo(i, y + height);
+        this.bg.strokePath();
+      }
 
-    // Poziome linie
-    for (let j = y; j <= y + height; j += cellSize) {
-      this.bg.beginPath();
-      this.bg.moveTo(x, j);
-      this.bg.lineTo(x + width, j);
-      this.bg.strokePath();
+      // Poziome linie
+      for (let j = y; j <= y + height; j += cellSize) {
+        this.bg.beginPath();
+        this.bg.moveTo(x, j);
+        this.bg.lineTo(x + width, j);
+        this.bg.strokePath();
+      }
     }
   }
 
@@ -146,7 +147,7 @@ export class Arena extends Scene {
 
     const pixel = this.add
       .rectangle(pixelX, pixelY, this.PIXEL_SIZE, this.PIXEL_SIZE, pixelColor)
-      .setStrokeStyle(1, 0x111111)
+      // .setStrokeStyle(1, 0x111111)
       .setOrigin(0, 0);
 
     this.pixelsLayer.add(pixel);

@@ -55,3 +55,10 @@
 </script>
 
 <div id="game-container" bind:this={phaserDiv}></div>
+
+<style>
+	#game-container {
+		width: 100%;
+		height: 100%;
+	}
+</style>
