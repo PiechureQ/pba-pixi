@@ -29,7 +29,6 @@
 		});
 
 		playerConnection.event.on('playerTurn', (data) => {
-			// console.log('playerTurn', data);
 			availableCommands = data.availableCommands;
 		});
 
@@ -45,6 +44,7 @@
 
 	const handleCommandClick = (command: AvailableCommand) => {
 		selectedCommand = command.type;
+		GameEvents.emit('command-selected', command);
 	};
 
 	const onJoin = () => {

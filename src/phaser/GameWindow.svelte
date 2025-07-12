@@ -56,7 +56,7 @@
 					game.listen();
 					const state = await game.sync();
 
-					scene.createMap(state.map.width, state.map.height);
+					scene.createMap(state.map.width, state.map.height, true);
 					scene.renderMap(state.map.pixels);
 				}
 			}
@@ -79,7 +79,7 @@
 		};
 	});
 
-	const currentScene = (scene: Scene) => {};
+	const currentScene = () => {};
 </script>
 
 <div id="game-window">

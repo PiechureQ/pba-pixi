@@ -1,5 +1,5 @@
-
 import mitt from 'mitt';
+import { GameEvents } from './EventBus';
 
 const GAME_SERVER_WS = 'ws://localhost:3000';
 
@@ -10,17 +10,8 @@ export type AvailableCommand = {
   availableTargets: { x: number; y: number }[];
 };
 
-type PlayerTurnEvent = {
+export type PlayerTurnEvent = {
   type: 'playerTurn';
-  playerId: string;
-  turnNumber: number;
-  roundNumber: number;
-  map: {
-    pixels: string[];
-    height: number;
-    width: number;
-  };
-  players: Player[];
   availableCommands: AvailableCommand[];
 };
 
@@ -65,9 +56,9 @@ export class PlayerConnection {
     socket.addEventListener('message', (event) => {
       const data = JSON.parse(event.data);
       if (data.type === 'playerTurn') {
-        // console.log('handle playerTurn')
         this.availableCommands = data.availableCommands;
         this.event.emit('playerTurn', data);
+        GameEvents.emit('playerTurn', data);
       } else if (data.type === 'joined') {
         this.playerId = data.playerId;
         this.playerColor = data.color;
