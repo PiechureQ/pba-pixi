@@ -16,8 +16,11 @@ export class Arena extends Scene {
   private keys!: { [key: string]: Phaser.Input.Keyboard.Key };
   private camera!: Phaser.Cameras.Scene2D.Camera;
   private bg!: Phaser.GameObjects.Graphics;
+  private bgFill!: Phaser.GameObjects.Graphics;
   private pixelsLayer!: Phaser.GameObjects.Layer;
   private pixelObjects: Map<string, Phaser.GameObjects.Rectangle> = new Map();
+
+  private lastOver: { x: number, y: number } | null = null;
 
   constructor() {
     super('Arena');
@@ -87,33 +90,63 @@ export class Arena extends Scene {
     if (this.bg) {
       this.bg.clear();
     } else {
-      this.bg = this.add.graphics().setDepth(0);
+      this.bg = this.add.graphics().setDepth(100);
+      this.bgFill = this.add.graphics().setDepth(0);
       this.bg.setInteractive(new Phaser.Geom.Rectangle(x, y, width, height), Phaser.Geom.Rectangle.Contains);
 
-      this.bg.on('pointerdown', (event) => {
-        // console.log(event)
-        const x = Math.floor(event.position.x / this.PIXEL_SIZE);
-        const y = Math.floor(event.position.y / this.PIXEL_SIZE);
+      this.bg.on('pointermove', (_pointer: unknown, localX: number, localY: number) => {
+        if (!this.lastOver || this.lastOver.x !== x || this.lastOver.y !== y) {
+          const x = Math.floor(localX / this.PIXEL_SIZE);
+          const y = Math.floor(localY / this.PIXEL_SIZE);
+          if (!this.lastOver) this.lastOver = { x, y };
+
+          const { x: lastx, y: lasty } = this.lastOver;
+
+          this.bg.lineStyle(1, 0x000000, 1); // czarna linia
+
+          // Pionowe linie
+          this.bg.beginPath();
+          let realX = lastx * this.PIXEL_SIZE;
+          let realY = lasty * this.PIXEL_SIZE;
+          this.bg.moveTo(realX, realY);
+          this.bg.lineTo(realX + this.PIXEL_SIZE, realY);
+          this.bg.lineTo(realX + this.PIXEL_SIZE, realY + this.PIXEL_SIZE);
+          this.bg.lineTo(realX, realY + this.PIXEL_SIZE);
+          this.bg.lineTo(realX, realY);
+          this.bg.strokePath();
+
+          // Narysuj siatkę z czarnych linii
+          this.bg.lineStyle(2, 0xffffff, 1); // czarna linia
+
+          // Pionowe linie
+          this.bg.beginPath();
+          realX = x * this.PIXEL_SIZE;
+          realY = y * this.PIXEL_SIZE;
+          this.bg.moveTo(realX, realY);
+          this.bg.lineTo(realX + this.PIXEL_SIZE, realY);
+          this.bg.lineTo(realX + this.PIXEL_SIZE, realY + this.PIXEL_SIZE);
+          this.bg.lineTo(realX, realY + this.PIXEL_SIZE);
+          this.bg.lineTo(realX, realY);
+          this.bg.strokePath();
+
+          this.lastOver.x = x;
+          this.lastOver.y = y;
+        }
+      })
+
+      this.bg.on('pointerdown', (_pointer: unknown, localX: number, localY: number) => {
+        const x = Math.floor(localX / this.PIXEL_SIZE);
+        const y = Math.floor(localY / this.PIXEL_SIZE);
         console.log(`Clicked pixel at (${x}, ${y})`);
         // Here you might want to emit an event to the game logic
         GameEvents.emit('pixel-clicked', { x, y });
       });
-
-      // todo
-      // this.bg.on('pointerover', () => {
-      //   this.bg.setStrokeStyle(2, 0xffffff); // White highlight
-      // });
-
-      // todo
-      // this.bg.on('pointerout', () => {
-      // pixel.setStrokeStyle(1, 0x111111); // Reset to default
-      // });
     }
 
     this.bg.input?.hitArea.setSize(width, height);
 
-    this.bg.fillStyle(0xffffff, 1);
-    this.bg.fillRect(0, 0, width, height);
+    this.bgFill.fillStyle(0xffffff, 1);
+    this.bgFill.fillRect(0, 0, width, height);
 
     if (lines) {
       // Narysuj siatkę z czarnych linii
@@ -137,8 +170,7 @@ export class Arena extends Scene {
     }
   }
 
-  private createPixel(pixelData: Pixel) {
-    console.log('createPixel')
+  private createPixel(pixelData: Pixel, lines: boolean = false) {
     const { x, y, color } = pixelData;
     const pixelX = x * this.PIXEL_SIZE;
     const pixelY = y * this.PIXEL_SIZE;
@@ -147,8 +179,10 @@ export class Arena extends Scene {
 
     const pixel = this.add
       .rectangle(pixelX, pixelY, this.PIXEL_SIZE, this.PIXEL_SIZE, pixelColor)
-      // .setStrokeStyle(1, 0x111111)
       .setOrigin(0, 0);
+
+    if (lines)
+      pixel.setStrokeStyle(1, 0x111111)
 
     this.pixelsLayer.add(pixel);
     this.pixelObjects.set(key, pixel);

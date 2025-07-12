@@ -14,7 +14,7 @@
 	pixels = generujLosoweKolory(width * height);
 
 	function regenerateMap() {
-		phaserRef.gameScene?.createMap(width, height);
+		phaserRef.gameScene?.createMap(width, height, true);
 	}
 
 	function updateMap(n: number) {
