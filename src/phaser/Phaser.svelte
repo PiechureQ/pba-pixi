@@ -1,6 +1,6 @@
 <script context="module" lang="ts">
 	import type { Game, Scene } from 'phaser';
-	import type { Arena } from './game/scenes/Arena';
+	import type { Arena } from '../game/scenes/Arena';
 
 	export type TPhaserRef = {
 		game: Game | null;
@@ -11,8 +11,8 @@
 
 <script lang="ts">
 	import { onMount } from 'svelte';
-	import StartGame from './game/main';
-	import { EventBus } from './game/EventBus';
+	import StartGame from '../game/main';
+	import { GameEvents } from '../game/EventBus';
 
 	let phaserDiv: HTMLDivElement;
 
@@ -27,7 +27,7 @@
 	onMount(() => {
 		phaserRef.game = StartGame();
 
-		EventBus.on('current-scene-ready', (scene_instance: Scene) => {
+		GameEvents.on('current-scene-ready', (scene_instance: Scene) => {
 			phaserRef.scene = scene_instance;
 
 			if (scene_instance.scene.key === 'Arena') {

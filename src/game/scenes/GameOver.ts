@@ -1,4 +1,4 @@
-import { EventBus } from '../EventBus';
+import { GameEvents } from '../EventBus';
 import { Scene } from 'phaser';
 
 export class GameOver extends Scene {
@@ -15,7 +15,20 @@ export class GameOver extends Scene {
       align: 'center'
     }).setOrigin(0.5).setDepth(100);
 
-    EventBus.emit('current-scene-ready', this);
+    const startButton = this.add.text(512, 520, 'Jeszcze raz', {
+      fontFamily: 'Arial Black',
+      fontSize: 28,
+      color: '#8effaf',
+      stroke: '#000000',
+      strokeThickness: 6,
+      align: 'center'
+    }).setOrigin(0.5).setDepth(100).setInteractive();
+
+    startButton.on('pointerdown', () => {
+      this.changeScene();
+    });
+
+    GameEvents.emit('current-scene-ready', this);
   }
 
   changeScene() {

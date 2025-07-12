@@ -43,7 +43,7 @@ export class PlayerConnection {
   public playerColor: string | null = null;
   public availableCommands: AvailableCommand[] = [];
 
-  connect(): PlayerConnection {
+  connect(): WebSocket {
     if (this.socket) {
       this.disconnect();
     }
@@ -53,6 +53,8 @@ export class PlayerConnection {
     socket.addEventListener('open', () => {
       this.event.emit('connect', true);
       console.log('Player connected');
+
+      socket.send(JSON.stringify({ type: 'join' }));
     });
 
     socket.addEventListener('close', () => {
@@ -79,16 +81,12 @@ export class PlayerConnection {
       console.error('WebSocket error:', error);
     });
 
-    return this;
+    return socket;
   }
 
   join() {
-    console.log('join', this.socket)
-    if (!this.socket) {
-      throw new Error('Socket is not initialized');
-    }
-    console.log('join', 'dupa')
-    this.socket.send(JSON.stringify({ type: 'join' }));
+    const socket = this.connect();
+    console.log('join')
   }
 
   sendMove(command: string, targets: { x: number; y: number }[]) {
@@ -102,5 +100,6 @@ export class PlayerConnection {
   disconnect() {
     this.socket?.close();
     this.socket = null;
+    this.event.all.clear();
   }
 }

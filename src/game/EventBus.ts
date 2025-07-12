@@ -1,4 +1,9 @@
-import { Events } from 'phaser';
+import { Scene } from 'phaser';
+import mitt from 'mitt';
 
-// Used to emit events between components, HTML and Phaser scenes
-export const EventBus = new Events.EventEmitter();
+export type GameEvent = {
+  'current-scene-ready': Scene,
+  'pixel-clicked': { x: number; y: number };
+}
+
+export const GameEvents = mitt<GameEvent>();

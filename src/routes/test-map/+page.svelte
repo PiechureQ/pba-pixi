@@ -1,10 +1,11 @@
 <script lang="ts">
 	import { onMount } from 'svelte';
 	import type { Scene } from 'phaser';
-	import PhaserGame, { type TPhaserRef } from '../../PhaserGame.svelte';
+	import { type TPhaserRef } from '../../phaser/Phaser.svelte';
+	import GameWindow from '../../phaser/GameWindow.svelte';
 
 	//  References to the PhaserGame component (game and scene are exposed)
-	let phaserRef: TPhaserRef = { game: null, scene: null, gameScene: null };
+	let phaserRef: TPhaserRef = $state({ game: null, scene: null, gameScene: null });
 
 	let width = $state(100);
 	let height = $state(100);
@@ -13,8 +14,7 @@
 	pixels = generujLosoweKolory(width * height);
 
 	function regenerateMap() {
-		pixels = generujLosoweKolory(width * height);
-		phaserRef.gameScene?.createMap(width, height, pixels);
+		phaserRef.gameScene?.createMap(width, height);
 	}
 
 	function updateMap(n: number) {
@@ -65,8 +65,6 @@
 
 		return kolorHex;
 	}
-
-	const currentScene = (scene: Scene) => {};
 </script>
 
 <div id="test-map-container">
@@ -77,7 +75,7 @@
 		<button onclick={start}>Start</button>
 		<button onclick={stop}>Stop</button>
 	</div>
-	<PhaserGame bind:phaserRef currentActiveScene={currentScene} />
+	<GameWindow offline={true} bind:phaserRef />
 </div>
 
 <style>

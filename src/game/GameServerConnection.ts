@@ -56,6 +56,11 @@ export class GameServerConnection {
     return this;
   }
 
+  async fetchGameState(): Promise<GameSync['state']> {
+    const sync = await this.sync()
+    return sync.state
+  }
+
   async sync() {
     const res = await fetch(`${GAME_SERVER_URL}/game-state`);
     const data = await res.json() as GameSync;
@@ -140,6 +145,7 @@ export class GameServerConnection {
   disconnect() {
     this.socket?.close()
     this.socket = null;
+    this.event.all.clear();
   }
 
   toString() {

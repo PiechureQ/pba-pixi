@@ -1,27 +1,78 @@
 <script lang="ts">
 	import type { AvailableCommand } from '../game/PlayerConnection';
+	import { PlayerConnection } from '../game/PlayerConnection';
+	import { onMount } from 'svelte';
+	import { GameEvents } from '../game/EventBus';
 
-	type Props = {
-		playerColor: string | null;
-		availableCommands: AvailableCommand[];
-		onJoin: () => void;
-		onCommandSelected: (command: string) => void;
-	};
+	// type Props = {
+	// playerColor: string | null;
+	// availableCommands: AvailableCommand[];
+	// onJoin: () => void;
+	// onCommandSelected: (command: string) => void;
+	// };
 
-	const { onJoin, onCommandSelected, playerColor = null, availableCommands = [] }: Props = $props();
+	// const { onCommandSelected, playerColor = null, availableCommands = [] }: Props = $props();
+
+	let joined = $state(false);
+	let playerColor = $state<string | null>(null);
+	let availableCommands = $state<any[]>([]);
+	let selectedCommand = $state<string | null>(null);
+
+	const playerConnection = new PlayerConnection();
 
 	const handleCommandClick = (command: any) => {
 		if (command.availableTargets.length > 0) {
-			onCommandSelected(command.type);
+			selectedCommand = command.type;
 		}
 	};
+
+	playerConnection.event.on('connect', (con) => {
+		if (!con) {
+			joined = false;
+		}
+	});
+
+	playerConnection.event.on('joined', (data) => {
+		console.log('joined', data);
+		playerColor = data.playerColor;
+		joined = true;
+	});
+
+	playerConnection.event.on('playerTurn', (data) => {
+		// console.log('playerTurn', data);
+		availableCommands = data.availableCommands;
+	});
+
+	GameEvents.on('pixel-clicked', (target) => {
+		console.log('pixel-clicked', target);
+		if (!selectedCommand) return;
+
+		playerConnection.sendMove(selectedCommand, [target]);
+	});
+
+	const onJoin = () => {
+		playerConnection.join();
+	};
+
+	const onDisconnect = () => {
+		playerConnection.disconnect();
+	};
+
+	onMount(() => {
+		return onDisconnect;
+	});
 </script>
 
 <div id="side-controls">
 	<p style="text-align: center; margin-top: 20px; font-weight: bold;">Panel Kontrolny</p>
 
-	<p>Dołącz do gry</p>
-	<button onclick={onJoin}>Dołącz</button>
+	{#if joined}
+		<p>Wyjdź z gry</p>
+		<button onclick={onDisconnect}>Wyjdź</button>
+	{:else}
+		<p>Dołącz do gry</p>
+		<button onclick={onJoin}>Dołącz</button>
+	{/if}
 
 	{#if playerColor}
 		<div class="player-info">
