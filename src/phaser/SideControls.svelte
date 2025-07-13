@@ -86,17 +86,15 @@
 			<p class="text-gray-100 font-md text-center py-2">Dostępne akcje:</p>
 			<div id="button-group" class="flex flex-col gap-2">
 				{#each availableCommands as command}
-					{#if command.availableTargets.length > 0}
-						<button
-							onclick={() => handleCommandClick(command)}
-							class={`command-button command-button-${command.type} option-btn px-4 py-2 rounded-full text-gray-700 ${
-								selectedCommand === command.type
-									? 'bg-blue-200 hover:bg-blue-100'
-									: 'bg-gray-200 hover:bg-gray-300'
-							}`}
-							data-value={command.type}>{command.type}</button
-						>
-					{/if}
+					<button
+						onclick={() => handleCommandClick(command)}
+						class={`command-button command-button-${command.type} option-btn px-4 py-2 rounded-full text-gray-700 ${
+							selectedCommand === command.type
+								? 'bg-blue-200 hover:bg-blue-100'
+								: 'bg-gray-200 hover:bg-gray-300'
+						}`}
+						data-value={command.type}>{command.type}</button
+					>
 				{/each}
 			</div>
 		</div>

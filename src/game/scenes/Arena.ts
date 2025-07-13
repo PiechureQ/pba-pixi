@@ -43,24 +43,36 @@ export class Arena extends Scene {
     this.setupInput();
 
     GameEvents.on('command-selected', command => {
-      this.selectedCommand = command.type;
-      this.commandTargets = command.availableTargets;
-
       this.targetGraphics.clear();
+
+      this.selectedCommand = command.type;
+      this.setCommandTargets(command.availableTargets);
     })
     GameEvents.on('playerTurn', (data) => {
       if (this.selectedCommand == 'paint') {
-        data.availableCommands.find(c => c.type == 'paint')?.availableTargets.forEach((t, i) => {
-          const lastTarget = this.commandTargets[i];
-          if (!lastTarget || t.x != lastTarget.x || t.y != lastTarget.y) {
-            this.drawPixelBorder(this.targetGraphics, 2, t.x, t.y, RED);
-          }
-        })
-        this.commandTargets = data.availableCommands.find(c => c.type == 'paint')?.availableTargets || [];
+        const command = data.availableCommands.find(c => c.type == 'paint');
+        if (command) {
+          this.setCommandTargets(command.availableTargets)
+        }
       }
+    })
+    GameEvents.on('pixel-clicked', (data) => {
+      // temp fix for red border on colored pixels
+      this.targetGraphics.clear();
+      this.setCommandTargets([]);
     })
 
     GameEvents.emit('current-scene-ready', this);
+  }
+
+  setCommandTargets(targets: AvailableCommand['availableTargets']) {
+    targets.forEach((t, i) => {
+      const lastTarget = this.commandTargets[i];
+      if (!lastTarget || t.x != lastTarget.x || t.y != lastTarget.y) {
+        this.drawPixelBorder(this.targetGraphics, 2, t.x, t.y, RED);
+      }
+    })
+    this.commandTargets = targets;
   }
 
   renderChanges(changes: Pixel[]) {
