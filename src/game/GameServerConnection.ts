@@ -150,6 +150,9 @@ export class GameServerConnection {
   disconnect() {
     this.socket?.close()
     this.socket = null;
+  }
+
+  destroy() {
     this.event.all.clear();
   }
 

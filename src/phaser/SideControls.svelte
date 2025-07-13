@@ -19,6 +19,9 @@
 		playerConnection.event.on('connect', (con) => {
 			if (!con) {
 				joined = false;
+				playerColor = null;
+				availableCommands = [];
+				selectedCommand = null;
 			}
 		});
 
@@ -39,7 +42,10 @@
 			playerConnection.sendMove(selectedCommand, [target]);
 		});
 
-		return onDisconnect;
+		return () => {
+			onDisconnect();
+			playerConnection.destroy();
+		};
 	});
 
 	const handleCommandClick = (command: AvailableCommand) => {

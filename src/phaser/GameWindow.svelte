@@ -15,7 +15,7 @@
 		admin = false,
 		offline = false,
 		phaserRef = $bindable({ game: null, scene: null, gameScene: null })
-	} = $props() as Props;
+	}: Props = $props();
 
 	let connected = $state(false);
 	let gameState = $state(false);
@@ -75,6 +75,7 @@
 		});
 		return () => {
 			game.disconnect();
+			game.destroy();
 			GameEvents.all.clear();
 		};
 	});

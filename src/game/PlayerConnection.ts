@@ -91,6 +91,9 @@ export class PlayerConnection {
   disconnect() {
     this.socket?.close();
     this.socket = null;
+  }
+
+  destroy() {
     this.event.all.clear();
   }
 }
